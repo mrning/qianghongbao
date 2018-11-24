@@ -49,9 +49,6 @@
         <activity android:name=".NotifySettingsActivity"
                   android:label="@string/notify_settings"/>
 
-        <activity android:name=".AboutMeActivity"
-                  android:label="@string/about_title"/>
-
         <service
             android:name=".QiangHongBaoService"
             android:enabled="true"

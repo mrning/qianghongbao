@@ -4,16 +4,12 @@ import android.annotation.TargetApi;
 import android.app.Dialog;
 import android.app.Fragment;
 import android.content.BroadcastReceiver;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -25,11 +21,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
-
-import com.codeboy.qianghongbao.job.WechatAccessbilityJob;
-import com.codeboy.qianghongbao.util.BitmapUtils;
-
-import java.io.File;
 
 /**
  * <p>Created by LeonLee on 15/2/17 下午10:11.</p>
@@ -160,10 +151,6 @@ public class MainActivity extends BaseSettingsActivity {
                 openNotificationServiceSettings();
                 QHBApplication.eventStatistics(this, "menu_notify");
                 break;
-            case 4:
-                startActivity(new Intent(this, AboutMeActivity.class));
-                QHBApplication.eventStatistics(this, "menu_about");
-                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -197,62 +184,6 @@ public class MainActivity extends BaseSettingsActivity {
         QHBApplication.showShare(this);
     }
 
-    /** 二维码*/
-    private void showQrDialog() {
-        final Dialog dialog = new Dialog(this, R.style.QR_Dialog_Theme);
-        View view = getLayoutInflater().inflate(R.layout.qr_dialog_layout, null);
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String id = getString(R.string.qr_wx_id);
-                ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("label", id);
-                clipboardManager.setPrimaryClip(clip);
-
-                //跳到微信
-                Intent wxIntent = getPackageManager().getLaunchIntentForPackage(
-                        WechatAccessbilityJob.WECHAT_PACKAGENAME);
-                if(wxIntent != null) {
-                    try {
-                        startActivity(wxIntent);
-                    } catch (Exception e){}
-                }
-
-                Toast.makeText(getApplicationContext(), "已复制到粘贴板", Toast.LENGTH_LONG).show();
-                QHBApplication.eventStatistics(MainActivity.this, "copy_qr");
-                dialog.dismiss();
-            }
-        });
-        dialog.setContentView(view);
-        dialog.show();
-    }
-
-    /** 显示捐赠的对话框*/
-    private void showDonateDialog() {
-        final Dialog dialog = new Dialog(this, R.style.QR_Dialog_Theme);
-        View view = getLayoutInflater().inflate(R.layout.donate_dialog_layout, null);
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
-        view.setOnLongClickListener(new View.OnLongClickListener() {
-
-            @Override
-            public boolean onLongClick(View v) {
-                File output = new File(android.os.Environment.getExternalStorageDirectory(), "codeboy_wechatpay_qr.jpg");
-                if(!output.exists()) {
-                    Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.wechatpay_qr);
-                    BitmapUtils.saveBitmap(MainActivity.this, output, bitmap);
-                }
-                Toast.makeText(MainActivity.this, "已保存到:" + output.getAbsolutePath(), Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
-        dialog.setContentView(view);
-        dialog.show();
-    }
 
     /** 显示未开启辅助服务的对话框*/
     private void showOpenAccessibilityServiceDialog() {
@@ -350,30 +281,6 @@ public class MainActivity extends BaseSettingsActivity {
                     return true;
                 }
             });
-
-            Preference preference = findPreference("KEY_FOLLOW_ME");
-            if(preference != null) {
-                preference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(Preference preference) {
-                        ((MainActivity) getActivity()).showQrDialog();
-                        QHBApplication.eventStatistics(getActivity(), "about_author");
-                        return true;
-                    }
-                });
-            }
-
-            preference = findPreference("KEY_DONATE_ME");
-            if(preference != null) {
-                preference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(Preference preference) {
-                        ((MainActivity) getActivity()).showDonateDialog();
-                        QHBApplication.eventStatistics(getActivity(), "donate");
-                        return true;
-                    }
-                });
-            }
 
             findPreference("WECHAT_SETTINGS").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
